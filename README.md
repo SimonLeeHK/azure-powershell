@@ -47,8 +47,8 @@ For different types of automation for login process, see [here].
 
 
 <!-- Local -->
-[AzureIcon]: documentation/image/Microsoft_Azure_32px.png
-[PowerShellIcon]: documentation/image/PowerShell_Core_6.0_32px.png
+[AzureIcon]: Documentation/image/Microsoft_Azure_32px.png
+[PowerShellIcon]: Documentation/image/PowerShell_Core_6.0_32px.png
 
 <!-- External -->
 [AzurePowerShellModules]: https://github.com/Azure/azure-powershell/blob/main/documentation/azure-powershell-modules.md
