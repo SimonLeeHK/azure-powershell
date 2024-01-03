@@ -1,8 +1,9 @@
 # Virtual Network
 This folder provide the powershell script for Azure virtual network.
 
-## Login Credential
-To login to Azure environment, you can run automation by this script, or run below command.
+## Login To Azure
+To login to Azure environment, you can run the cmdlet from here.
+Or, for automation tasks without user interaction, you can reference from here.
 
 ```powershell
 # Define Tenant ID
@@ -21,5 +22,9 @@ Connect-AzAccount -Tenant $TenantID -Subscription $SubscriptionID -Credential $C
 Connect-AzAccount -Tenant $TenantID -Subscription $SubscriptionID
 ```
 
-## Related documentation
-For more official documentation for Azure virtual network, you can visit [here](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview)
+## Learn More
+For more official documentation for Azure virtual network, you can visit [here][AzureVirtualNetworkDocument].
+
+
+
+[AzureVirtualNetworkDocument]: https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview
