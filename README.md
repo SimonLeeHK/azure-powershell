@@ -27,4 +27,4 @@ This repositry is used to store PowerShell script for Azure resource development
 <!-- References -->
 
 <!-- Local -->
-[AzureIcon]: documentation/Microsoft_Azure.png
+[AzureIcon]: documentation/Microsoft_Azure_32px.png
