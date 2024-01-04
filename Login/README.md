@@ -52,11 +52,107 @@ Place the script and csv file in the same location, Now we can run it.
 # Import CSV
 $CsvLoginCredential = Import-csv ".\AzLoginCredential.csv"
 
-foreach
+foreach($Credential in $CsvLoginCredential){
+    #Create User Credential
+    $User = $CsvLoginCredential.UPN
+    $PW = $CsvLoginCredential.Password | ConvertTo-SecureString -AsPlainText -Force
+    $Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $User,$PW
+
+    #Define Tenant ID and Subscription ID
+    $TenantID = $CsvLoginCredential.TenantID
+    $SubscriptionID = $CsvLoginCredential.SubscriptionID
+
+    #SignIn to Azure with provided credential
+    #MFA must not be configure
+    Connect-AzAccount -Tenant $TenantID -SubscriptionId $SubscriptionID -Credential $Credential
+
+    ## Your automation task ... #
+    # .
+    # .
+    # .
+}
+```
+***Please note that, if the user account or targeted tenant require MFA, the above login will return error.*** </br>
+
+To avoid the scenariothat some of the account require MFA, we can use [LoginAzureWithMultiCredential-MFA.ps1][LoginAzureWithMultiCredential-MFA] to cater it. This also work while the provided credential face login error.
+```powershell
+#Set error action perference to Stop
+$ErrorActionPreference = "Stop"
+
+# Import CSV
+$CsvLoginCredential = Import-csv ".\AzLoginCredential.csv"
+
+foreach($Credential in $CsvLoginCredential){
+    #Create User Credential
+    $User = $CsvLoginCredential.UPN
+    $PW = $CsvLoginCredential.Password | ConvertTo-SecureString -AsPlainText -Force
+    $Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $User,$PW
+
+    #Define Tenant ID and Subscription ID
+    $TenantID = $CsvLoginCredential.TenantID
+    $SubscriptionID = $CsvLoginCredential.SubscriptionID
+
+    try{
+        #SignIn to Azure with provided credential
+        Connect-AzAccount -Tenant $TenantID -SubscriptionId $SubscriptionID -Credential $Credential
+    }catch{
+        #SignIn to Azure with user prompt when any error
+        Connect-AzAccount -Tenant $TenantID -SubscriptionId $SubscriptionID
+    }
+
+    ## Your automation task ... #
+    # .
+    # .
+    # .
+}
 ```
 
+## Use in other scipt
+The login scipt if self only provide the authentication part, it will be a foundation in the other automation script. In this case, we can separate the login credential file and the resource configuration file. The script can be download from [here][LoginAzureWithMultiCredential-Automation].
+* [AzConfiguration.csv][AzConfigurationCSV] : This CSV file used to store the configuration of the resources, include tenant ID and subscription ID.
+
+![AzConfigurationScreenCapture]
+
+```powershell
+#Set error action perference to Stop
+$ErrorActionPreference = "Stop"
+
+# Import CSV for credential and configuration
+$CsvLoginCredential = Import-csv ".\AzLoginCredential.csv"
+$CsvConfiguration = Import-csv ".\AzConfiguration.csv"
+
+# Filter the configuration file to list out the unique tenant and subscption
+$UniqueTenantSubscription = $CsvConfiguration | Select-Object "TenantID","SubscriptionID" -Unique
+
+# Loop through the unique tenant and subscription, login with credential match from credential CSV
+foreach($TenantSubscription in $UniqueTenantSubscription){
+    # Filter the credential with specific tenant and subscription
+    $LoginCredential = $CsvLoginCredential | Where-Object {($_.TenantID -eq $TenantSubscription.TenantID) -and ($_.SubscriptionID -eq $TenantSubscription.SubscriptionID)}
+    
+    #Create User Credential
+    $PW = $LoginCredential.Password | ConvertTo-SecureString -AsPlainText -Force
+    $Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $LoginCredential.UPN,$PW
+
+    try{
+        #SignIn to Azure with provided credential
+        Connect-AzAccount -Tenant $LoginCredential.TenantID -SubscriptionId $LoginCredential.SubscriptionID -Credential $Credential
+    }catch{
+        #SignIn to Azure with user prompt when any error
+        Connect-AzAccount -Tenant $LoginCredential.TenantID -SubscriptionId $LoginCredential.SubscriptionID
+    }
+    
+    ## Your automation task ... #
+    # .
+    # .
+    # .
+}
+```
+
+The script above seperate 2 CSV file for credential and configuration. The idea here is first sort and fiter to check how many unique subscription we need to login, so that we can lookup the correct credential and run the login process with minimum time.
+
 ## Reference
-* [Azure PowerShell Github][AzurePowerShellGithub]
+* [Az Accounts Module][Az.Accounts]
+* [Azure App Registration][AppRegistration]
 
 
 
@@ -67,6 +163,10 @@ foreach
 <!-- Local -->
 [LoginAzureWithMultiCredential]: LoginAzureWithMultiCredential.ps1
 [AzLoginCredentialScreenCapture]: image/AzLoginCredential%20-%20ScreenCapture.png
+[LoginAzureWithMultiCredential-MFA]: LoginAzureWithMultiCredential-MFA.ps1
+[LoginAzureWithMultiCredential-Automation]: LoginAzureWithMultiCredential-Automation.ps1
+[AzConfigurationScreenCapture]: image/AzConfiguration%20-%20ScreenCapture.png
+[AzConfigurationCSV]: AzConfiguration.csv
 
 <!-- External -->
 [Az.Accounts]: https://learn.microsoft.com/en-us/powershell/module/az.accounts/?view=azps-11.1.0
